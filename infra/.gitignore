@@ -1,0 +1,12 @@
+# Terraform state
+*.tfstate
+*.tfstate.backup
+
+# Crash log
+crash.log
+
+# .terraformディレクトリ
+.terraform/
+
+# 機密値を含む場合
+terraform.tfvars
