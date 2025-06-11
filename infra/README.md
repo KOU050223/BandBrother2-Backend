@@ -13,6 +13,10 @@ Artifact Registry API・Cloud Run Admin APIを有効にする
 https://console.cloud.google.com/apis/api/artifactregistry.googleapis.com/metrics
 https://console.cloud.google.com/apis/api/run.googleapis.com/metrics
 
+環境変数を渡す
+
+- terraform.tfvars
+
 ## Dockerコンテナをプッシュ
 
 初回のみ認証を挟む
