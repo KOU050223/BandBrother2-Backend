@@ -1,9 +1,9 @@
-# websocket-serverのフォルダー
+# game-serverのフォルダー
 
 # 環境構築手順
 
 ```bash
-cd websocket-server
+cd game-server
 go mod tidy
 ```
 

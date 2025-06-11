@@ -6,13 +6,13 @@ resource "google_artifact_registry_repository" "websocket_repo" {
 }
 
 resource "google_cloud_run_service" "websocket_server" {
-  name     = "websocket-server"
+  name     = "game-server"
   location = var.region
 
   template {
     spec {
       containers {
-        image = "asia-northeast1-docker.pkg.dev/${var.project_id}/go-websocket/websocket-server:latest"
+        image = "asia-northeast1-docker.pkg.dev/${var.project_id}/go-websocket/game-server:latest"
         ports {
           container_port = 8080
         }
