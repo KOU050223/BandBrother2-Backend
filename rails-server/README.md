@@ -49,3 +49,9 @@ http://localhost:3000
 docker-compose down
 docker-compose up -d
 ```
+
+# logの見方
+
+```
+docker-compose logs web
+```
