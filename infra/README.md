@@ -22,14 +22,14 @@ gcloud auth configure-docker asia-northeast1-docker.pkg.dev
 ```
 
 ```bash
-# 1. websocket-serverディレクトリに移動
-cd ../websocket-server
+# 1. game-serverディレクトリに移動
+cd ../game-server
 
 # 2. ビルド（必要ならGoのmain.goを含むディレクトリで）
 docker buildx build --platform linux/amd64 \
-  -t asia-northeast1-docker.pkg.dev/bandbrother2/go-websocket/websocket-server:latest \
+  -t asia-northeast1-docker.pkg.dev/bandbrother2/go-websocket/game-server:latest \
   --push .
 
 # 3. Google Cloudへpush
-docker push asia-northeast1-docker.pkg.dev/bandbrother2/go-websocket/websocket-server:latest
+docker push asia-northeast1-docker.pkg.dev/bandbrother2/go-websocket/game-server:latest
 ```
