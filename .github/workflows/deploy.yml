@@ -37,7 +37,7 @@ jobs:
 
       - name: Build and Push Docker image (game-server)
         run: |
-          cd ../game-server
+          cd game-server
           docker buildx build --platform linux/amd64 -t asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/go-websocket/game-server:latest --push .
 
       - name: Terraform Init
