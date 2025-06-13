@@ -25,6 +25,8 @@ https://console.cloud.google.com/apis/api/run.googleapis.com/metrics
 gcloud auth configure-docker asia-northeast1-docker.pkg.dev
 ```
 
+### game-serverの方のコンテナプッシュ
+
 ```bash
 # 1. game-serverディレクトリに移動
 cd ../game-server
@@ -36,4 +38,14 @@ docker buildx build --platform linux/amd64 \
 
 # 3. Google Cloudへpush
 docker push asia-northeast1-docker.pkg.dev/bandbrother2/go-websocket/game-server:latest
+```
+
+```bash
+# 1. rails-server ディレクトリに移動
+cd ../rails-server
+
+# 2. ビルド
+DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 \
+  -t asia-northeast1-docker.pkg.dev/bandbrother2/rails-server/rails-server:latest \
+  --push .
 ```
