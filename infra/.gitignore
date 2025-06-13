@@ -10,3 +10,6 @@ crash.log
 
 # 機密値を含む場合
 terraform.tfvars
+
+# Service Accountキー
+*.json
