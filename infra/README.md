@@ -6,6 +6,12 @@ terraform plan
 terraform apply
 ```
 
+# リソース削除
+
+```bash
+terraform destroy
+```
+
 # 構築手順メモ
 
 Artifact Registry API・Cloud Run Admin APIを有効にする
