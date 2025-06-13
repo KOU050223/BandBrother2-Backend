@@ -1,24 +1,57 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+# 環境構築手順
 
-Things you may want to cover:
+1. クローン
 
-* Ruby version
+```bash
+git clone git@github.com:KOU050223/BandBrother2-Backend.git
+```
 
-* System dependencies
+2. プロジェクトの移動（rubyの環境はあるものとする/rubyのバージョンに注意）
 
-* Configuration
+```bash
+cd rails-server
+bundle install
+```
 
-* Database creation
+3. 秘密鍵の配置
 
-* Database initialization
+`config/master.key`を他開発者から入手しコピーしてください
+この際にmaster.key内の文字列の後に改行を入れてください
 
-* How to run the test suite
+4. 実行権限の設定
 
-* Services (job queues, cache servers, search engines, etc.)
+```bash
+chmod +x bin/docker-entrypoint
+```
 
-* Deployment instructions
+5. Dockerイメージのビルド＆起動
 
-* ...
+```bash
+docker-compose build
+docker-compose up -d
+```
+
+6. DBマイグレーション
+
+```bash
+docker-compose exec web bundle exec rails db:create db:migrate
+```
+
+7. 動作確認
+
+http://localhost:3000
+
+# 開発サーバー（Dockerコンテナ）立ち上げ
+
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+# logの見方
+
+```
+docker-compose logs web
+```
