@@ -59,3 +59,9 @@ docker-compose up -d
 ```
 docker-compose logs web
 ```
+
+実行中のコンテナ一覧
+
+```bash
+docker ps
+```
