@@ -12,9 +12,13 @@ jobs:
       REGION: ${{ secrets.GCP_REGION }}
       ARTIFACT_REGISTRY: ${{ secrets.GCP_ARTIFACT_REGISTRY }}
       GAR_IMAGE: ${{ secrets.GCP_GAR_IMAGE }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Show workspace files
+        run: ls -la
 
       - id: auth
         uses: google-github-actions/auth@v2
@@ -26,30 +30,51 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker for Artifact Registry
+      - name: Show gcloud version and auth info
         run: |
-          gcloud auth configure-docker $ARTIFACT_REGISTRY
+          gcloud --version
+          gcloud auth list
+          gcloud config list
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker $ARTIFACT_REGISTRY
 
       - name: Build and Push Docker image (rails-server)
         run: |
+          ls -la
           cd rails-server
+          ls -la
           docker buildx build --platform linux/amd64 -t $GAR_IMAGE --push .
 
       - name: Build and Push Docker image (game-server)
         run: |
-          cd game-server
+          cd ${{ github.workspace }}/game-server
+          ls -la
           docker buildx build --platform linux/amd64 -t asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/go-websocket/game-server:latest --push .
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Show infra directory files
+        run: ls -la infra
+
       - name: Terraform Init
         run: |
           cd infra
           terraform init
 
-      - name: Terraform Apply
+      - name: Terraform Plan
         run: |
           cd infra
+          terraform plan
+
+      - name: Terraform Apply (with timeouts and logs)
+        timeout-minutes: 25  # 必要に応じて調整
+        run: |
+          cd infra
+          echo "::group::Terraform Apply Output"
           terraform apply -auto-approve
+          echo "::endgroup::"
         env:
           TF_VAR_project: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_region: ${{ secrets.GCP_REGION }}
