@@ -23,7 +23,7 @@ FROM base AS build
 
 # Install build dependencies
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
+    apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config libpq-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install gems
@@ -49,13 +49,19 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 # ───── Final runtime stage ─────
 FROM base
 
+# PostgreSQLクライアントライブラリをインストール
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y libpq-dev && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
 # Create non-root user
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
+    chown -R rails:rails db log storage tmp /usr/local/bundle
 USER 1000:1000
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]

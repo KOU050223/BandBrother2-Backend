@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  POST "scores/create"
+  post "scores/create"
   get "match_notification/notify_match"
   get "match_making/join"
   get "match_making/destroy"
