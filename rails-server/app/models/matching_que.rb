@@ -1,0 +1,2 @@
+class MatchingQue < ApplicationRecord
+end
