@@ -29,14 +29,18 @@ chmod +x bin/docker-entrypoint
 5. Dockerイメージのビルド＆起動
 
 ```bash
-docker-compose build
+docker-compose build web
+```
+
+```bash
 docker-compose up -d
 ```
 
 6. DBマイグレーション
 
 ```bash
-docker-compose exec web bundle exec rails db:create db:migrate
+docker-compose exec web bundle exec rails db:create
+docker-compose exec web bundle exec rails db:migrate
 ```
 
 7. 動作確認
@@ -54,4 +58,10 @@ docker-compose up -d
 
 ```
 docker-compose logs web
+```
+
+実行中のコンテナ一覧
+
+```bash
+docker ps
 ```
