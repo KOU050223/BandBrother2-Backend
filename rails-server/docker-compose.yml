@@ -1,7 +1,9 @@
-version: "3"
+version: "3.8" # ← 3.8 に上げて volume の options など使いやすく
+
 services:
   db:
     image: postgres:15
+    container_name: myapp-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -9,16 +11,26 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+
   web:
-    build: .
-    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUNDLE_PATH_ARG: vendor/bundle
+    container_name: myapp-web
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'" # ← pidエラー対策つき
     volumes:
       - .:/rails
+      - bundle_data:/rails/vendor/bundle # ← Gemキャッシュの永続化
       - ./config/master.key:/rails/config/master.key
       - ./config/credentials.yml.enc:/rails/config/credentials.yml.enc
     ports:
       - "3000:3000"
     environment:
+      BUNDLE_PATH: vendor/bundle
+      BUNDLE_DEPLOYMENT: "0"
+      RAILS_ENV: development
       DATABASE_HOST: db
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: password
@@ -28,3 +40,4 @@ services:
 
 volumes:
   db-data:
+  bundle_data:
