@@ -1,10 +1,4 @@
 Rails.application.routes.draw do
-  post "scores/create"
-  get "match_notification/notify_match"
-  get "match_making/join"
-  get "match_making/destroy"
-  get "users/create"
-  get "users/show"
   # get "music/index"
   # get "music/show"
   # # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -29,8 +23,12 @@ Rails.application.routes.draw do
     #roomマッチング
       post 'matchmaking/join', to: 'matchmaking#join'
     #
+      post 'notify_match', to: 'match_notification#notify_match'
     #
+      post 'user/:id', to: 'users#create_or_update' # create_or_update はカスタムアクション名
+      get 'user/:id', to: 'users#show' # GET /api/user/:id の show
     #
+      delete 'matchmaking', to: 'matchmaking#destroy'
     #
     end
 end
