@@ -64,7 +64,7 @@ RUN groupadd --system --gid 1000 rails && \
     chown -R rails:rails db log storage tmp /usr/local/bundle
 USER 1000:1000
 
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+# ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 EXPOSE 8080
 CMD ["sh", "-c", "./bin/thrust ./bin/rails server -b 0.0.0.0 -p ${PORT:-8080}"]

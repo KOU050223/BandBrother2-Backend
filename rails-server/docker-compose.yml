@@ -1,5 +1,3 @@
-version: "3.8" # ← 3.8 に上げて volume の options など使いやすく
-
 services:
   db:
     image: postgres:15
@@ -19,10 +17,10 @@ services:
       args:
         BUNDLE_PATH_ARG: vendor/bundle
     container_name: myapp-web
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'" # ← pidエラー対策つき
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/rails
-      - bundle_data:/rails/vendor/bundle # ← Gemキャッシュの永続化
+      - bundle_data:/rails/vendor/bundle
       - ./config/master.key:/rails/config/master.key
       - ./config/credentials.yml.enc:/rails/config/credentials.yml.enc
     ports:
