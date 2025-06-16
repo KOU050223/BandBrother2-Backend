@@ -79,6 +79,9 @@ docker-compose exec web bundle exec rails console
 
 # データベース直接接続
 docker-compose exec db psql -U postgres -d myapp_development
+
+# ライブラリインストール
+docker-compose exec --user root web bundle install
 ```
 
 ## 🌐 アクセス情報
