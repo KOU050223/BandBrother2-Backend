@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # BandBrother2 Backend 停止スクリプト
-# このスクリプトは Rails サーバー（Docker）と Go WebSocket サーバー（ローカル）を停止します
+# このスクリプトは Docker Compose で全サービス（Rails、Go WebSocket、PostgreSQL、Redis）を停止します
 
 echo "🛑 BandBrother2 Backend を停止中..."
 echo "=================================="
@@ -9,28 +9,11 @@ echo "=================================="
 # 現在のディレクトリを保存
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Go WebSocketサーバーの停止
-echo "🔌 Go WebSocket サーバーを停止中..."
-if pgrep -f "./bin/server" > /dev/null; then
-    echo "   Go サーバープロセスを停止します..."
-    pkill -f "./bin/server"
-    sleep 2
-    
-    if pgrep -f "./bin/server" > /dev/null; then
-        echo "   強制停止します..."
-        pkill -9 -f "./bin/server"
-    fi
-    echo "   ✅ Go WebSocket サーバーを停止しました"
-else
-    echo "   ℹ️  Go WebSocket サーバーは実行されていません"
-fi
-
 # Dockerサービスの停止
-echo ""
 echo "🐳 Docker サービスを停止中..."
-cd "$SCRIPT_DIR/rails-server"
+cd "$SCRIPT_DIR"
 
-if docker-compose ps | grep -q "Up"; then
+if docker-compose ps 2>/dev/null | grep -q "Up"; then
     echo "   Docker Compose サービスを停止します..."
     docker-compose down
     echo "   ✅ Docker サービスを停止しました"
@@ -38,35 +21,40 @@ else
     echo "   ℹ️  Docker サービスは実行されていません"
 fi
 
-# ログファイルのクリーンアップ（オプション）
+# Docker volumesのクリーンアップ（オプション）
 echo ""
-echo "🧹 ログファイルの処理..."
-if [ -f "$SCRIPT_DIR/go-server.log" ]; then
-    echo "   📝 Go サーバーログ: $SCRIPT_DIR/go-server.log (保持されます)"
-    # 必要に応じてログを削除する場合は以下のコメントを外してください
-    # rm "$SCRIPT_DIR/go-server.log"
-    # echo "   🗑️  Go サーバーログを削除しました"
-fi
+echo "🧹 クリーンアップオプション..."
+echo "   💡 Docker volumesを削除する場合: docker-compose down -v"
+echo "   💡 Docker imagesを削除する場合: docker rmi \$(docker images -q)"
 
 # 最終確認
 echo ""
 echo "🔍 停止状況の確認..."
 echo "=================================="
 
-echo "🔌 Go WebSocket サーバー:"
-if pgrep -f "./bin/server" > /dev/null; then
-    echo "   ⚠️  まだ実行中です (PID: $(pgrep -f './bin/server'))"
-else
-    echo "   ✅ 停止済み"
-fi
-
-echo ""
 echo "📦 Docker サービス:"
-if docker-compose -f "$SCRIPT_DIR/rails-server/docker-compose.yml" ps | grep -q "Up"; then
-    docker-compose -f "$SCRIPT_DIR/rails-server/docker-compose.yml" ps
+if docker-compose ps 2>/dev/null | grep -q "Up"; then
+    docker-compose ps
 else
     echo "   ✅ 全て停止済み"
 fi
+
+echo ""
+echo "🌐 ポート状況:"
+check_port() {
+    local port=$1
+    local service=$2
+    if nc -z localhost $port 2>/dev/null; then
+        echo "   ⚠️  ポート $port ($service): まだ使用中"
+    else
+        echo "   ✅ ポート $port ($service): 解放済み"
+    fi
+}
+
+check_port 3000 "Rails"
+check_port 8080 "WebSocket"
+check_port 5432 "PostgreSQL"
+check_port 6379 "Redis"
 
 echo ""
 echo "✅ BandBrother2 Backend の停止が完了しました！"

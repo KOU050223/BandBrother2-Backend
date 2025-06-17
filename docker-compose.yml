@@ -1,0 +1,81 @@
+services:
+  db:
+    image: postgres:15
+    container_name: myapp-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: myapp_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7
+    container_name: myapp-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: ./rails-server
+      dockerfile: Dockerfile
+      args:
+        BUNDLE_PATH_ARG: vendor/bundle
+    container_name: myapp-web
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - ./rails-server:/rails
+      - bundle_data:/rails/vendor/bundle
+    ports:
+      - "3000:3000"
+    environment:
+      BUNDLE_PATH: vendor/bundle
+      BUNDLE_DEPLOYMENT: "0"
+      RAILS_ENV: development
+      DATABASE_HOST: db
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: myapp_development
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  game-server:
+    build:
+      context: ./game-server
+      dockerfile: Dockerfile
+    container_name: myapp-game-server
+    ports:
+      - "8080:8080"
+    environment:
+      WS_PORT: "8080"
+      DATABASE_HOST: db
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: myapp_development
+      REDIS_URL: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  db-data:
+  bundle_data:
