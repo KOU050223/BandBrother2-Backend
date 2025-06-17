@@ -1,0 +1,172 @@
+# BandBrother2 Backend .gitignore
+
+# ========================
+# Go関連
+# ========================
+# Goバイナリファイル
+game-server/bin/
+game-server/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Goテストバイナリ
+*.test
+
+# Go coverage files
+*.out
+*.prof
+
+# Go vendorディレクトリ
+vendor/
+
+# Go module cache
+go.sum.backup
+
+# ========================
+# Rails関連
+# ========================
+# Railsログファイル
+rails-server/log/*
+!rails-server/log/.keep
+
+# Rails一時ファイル
+rails-server/tmp/*
+!rails-server/tmp/.keep
+!rails-server/tmp/cache/
+!rails-server/tmp/cache/.keep
+rails-server/tmp/cache/*
+!rails-server/tmp/cache/.keep
+
+# Rails storage
+rails-server/storage/*
+!rails-server/storage/.keep
+
+# Rails PIDファイル
+rails-server/tmp/pids/
+
+# Rails credentials (セキュリティ上重要)
+rails-server/config/master.key
+
+# Rails database
+rails-server/db/*.sqlite3
+rails-server/db/*.sqlite3-wal
+rails-server/db/*.sqlite3-shm
+
+# ========================
+# Docker関連
+# ========================
+# Docker volumes data
+.docker/
+
+# ========================
+# ログファイル
+# ========================
+# プロジェクトレベルのログ
+*.log
+go-server.log
+nohup.out
+
+# 各種ログファイル
+logs/
+*.log.*
+
+# ========================
+# 環境設定ファイル
+# ========================
+# 環境変数ファイル（本番用）
+.env.production
+.env.local
+.env.*.local
+
+# ========================
+# IDE・エディタ関連
+# ========================
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# ========================
+# OS関連
+# ========================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ========================
+# その他
+# ========================
+# 一時ファイル
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# アーカイブファイル
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+
+# 依存関係（特定のディレクトリ）
+rails-server/vendor/bundle/
+
+# テストカバレッジ
+coverage/
+
+# 設定ファイルのバックアップ
+*.orig
+
+# デバッグファイル
+debug/
+*.debug
+
+# パフォーマンス測定ファイル
+*.pprof
+
+# ビルドアーティファクト
+build/
+dist/
+out/

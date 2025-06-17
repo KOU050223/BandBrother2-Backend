@@ -21,14 +21,16 @@ Rails.application.routes.draw do
     #スコアデータ送信
       post ':game_id/score', to: 'scores#create'
     #roomマッチング
+      post 'matchmaking', to: 'matchmaking#join'
       post 'matchmaking/join', to: 'matchmaking#join'
+      delete 'matchmaking', to: 'matchmaking#destroy'
+      get 'matchmaking/status/:room_id', to: 'matchmaking#status'
     #
       post 'notify_match', to: 'match_notification#notify_match'
+      get 'notify_match', to: 'match_notification#notify_match'
     #
       post 'user/:id', to: 'users#create_or_update' # create_or_update はカスタムアクション名
       get 'user/:id', to: 'users#show' # GET /api/user/:id の show
-    #
-      delete 'matchmaking', to: 'matchmaking#destroy'
     #
     end
 end
