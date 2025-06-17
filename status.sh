@@ -11,8 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # サービス状況確認
 echo "📦 Docker サービス状況:"
-cd "$SCRIPT_DIR/rails-server"
-if docker-compose ps | grep -q "myapp"; then
+# 現在のディレクトリでdocker-compose psを実行
+if docker-compose ps 2>/dev/null | grep -q "myapp"; then
     docker-compose ps
 else
     echo "   ❌ Docker サービスが起動していません"
@@ -20,14 +20,21 @@ fi
 
 echo ""
 echo "🔌 Go WebSocket サーバー状況:"
-if pgrep -f "./bin/server" > /dev/null; then
-    GO_PID=$(pgrep -f "./bin/server")
-    echo "   ✅ 実行中 (PID: $GO_PID)"
+# Dockerコンテナの状態をチェック
+if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "myapp-game-server"; then
+    CONTAINER_STATUS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep "myapp-game-server" | awk '{print $2, $3}')
+    echo "   ✅ コンテナ実行中 ($CONTAINER_STATUS)"
+    
+    # WebSocketサーバーの動作確認（HTTPアクセステスト）
+    if curl -s --max-time 3 http://localhost:8080 > /dev/null 2>&1; then
+        echo "   ✅ WebSocketサーバー応答中"
+    else
+        echo "   ⚠️  WebSocketサーバーが応答していません"
+    fi
     
     # メモリ使用量を表示
-    if command -v ps > /dev/null; then
-        echo "   📊 メモリ使用量: $(ps -o rss= -p $GO_PID | awk '{print $1/1024 " MB"}')"
-    fi
+    MEMORY_USAGE=$(docker stats myapp-game-server --no-stream --format "{{.MemUsage}}" 2>/dev/null || echo "取得不可")
+    echo "   📊 メモリ使用量: $MEMORY_USAGE"
 else
     echo "   ❌ 停止中"
 fi
@@ -72,7 +79,15 @@ fi
 
 # データベース接続テスト
 echo -n "   PostgreSQL データベース: "
-if docker-compose -f "$SCRIPT_DIR/rails-server/docker-compose.yml" exec -T db pg_isready -U postgres > /dev/null 2>&1; then
+if docker exec myapp-db pg_isready -U postgres > /dev/null 2>&1; then
+    echo "✅ 接続可能"
+else
+    echo "❌ 接続不可"
+fi
+
+# Redis接続テスト
+echo -n "   Redis: "
+if docker exec myapp-redis redis-cli ping > /dev/null 2>&1; then
     echo "✅ 接続可能"
 else
     echo "❌ 接続不可"
