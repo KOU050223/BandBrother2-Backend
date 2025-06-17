@@ -67,6 +67,15 @@ jobs:
         run: |
           cd infra
           terraform plan
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_region: ${{ secrets.GCP_REGION }}
+          TF_VAR_database_name: ${{ secrets.TF_VAR_DATABASE_NAME }}
+          TF_VAR_database_user: ${{ secrets.TF_VAR_DATABASE_USER }}
+          TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
+          TF_VAR_rails_server_image: ${{ secrets.GCP_GAR_IMAGE }}
+          TF_VAR_rails_master_key: ${{ secrets.TF_VAR_RAILS_MASTER_KEY }}
+          TF_VAR_service_account_email: ${{ secrets.TF_VAR_SERVICE_ACCOUNT_EMAIL }}
 
       - name: Terraform Apply (with timeouts and logs)
         timeout-minutes: 25  # 必要に応じて調整
@@ -76,5 +85,11 @@ jobs:
           terraform apply -auto-approve
           echo "::endgroup::"
         env:
-          TF_VAR_project: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_region: ${{ secrets.GCP_REGION }}
+          TF_VAR_database_name: ${{ secrets.TF_VAR_DATABASE_NAME }}
+          TF_VAR_database_user: ${{ secrets.TF_VAR_DATABASE_USER }}
+          TF_VAR_database_password: ${{ secrets.TF_VAR_DATABASE_PASSWORD }}
+          TF_VAR_rails_server_image: ${{ secrets.GCP_GAR_IMAGE }}
+          TF_VAR_rails_master_key: ${{ secrets.TF_VAR_RAILS_MASTER_KEY }}
+          TF_VAR_service_account_email: ${{ secrets.TF_VAR_SERVICE_ACCOUNT_EMAIL }}
