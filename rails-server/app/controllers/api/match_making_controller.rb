@@ -1,4 +1,4 @@
-class MatchMakingController < ApplicationController
+class Api::MatchMakingController < ActionController::API
   def join
   end
 
