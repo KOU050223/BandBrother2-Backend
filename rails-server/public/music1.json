@@ -1,0 +1,9 @@
+{
+  "title": "Music 1",
+  "artist": "Artist A",
+  "album": "Album X",
+  "year": 2020,
+  "genre": "Pop",
+  "duration": "3:45",
+  "file_path": "/music/artist_a/album_x/music_1.mp3"
+}

@@ -1,6 +1,5 @@
 class Api::MatchMakingController < ApplicationController
   before_action :authenticate_user!, except: [:join, :destroy, :status]
-  
   def join
     user_id = params[:user_id]
     difficulty = params[:difficulty] || 'Easy'

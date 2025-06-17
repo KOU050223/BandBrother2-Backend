@@ -14,7 +14,7 @@ Rails.application.routes.draw do
   # # Defines the root path route ("/")
   # # root "posts#index"
 
-    namespace :api do
+    namespace :api , defaults: { format: :json } do
 
     # 楽曲データ取得
       resources :music, only: [:index, :show]
@@ -25,12 +25,18 @@ Rails.application.routes.draw do
       post 'matchmaking/join', to: 'matchmaking#join'
       delete 'matchmaking', to: 'matchmaking#destroy'
       get 'matchmaking/status/:room_id', to: 'matchmaking#status'
-    #
+    #マッチ成立後の処理
       post 'notify_match', to: 'match_notification#notify_match'
       get 'notify_match', to: 'match_notification#notify_match'
-    #
+    #ユーザー登録関係
+      post 'users', to: 'users#create' # create_or_update はカスタムアクション名
+      get 'users', to: 'users#update' # GET /api/user/:id の show
+      put 'users', to: 'users#update' # PUT /api/user/:id の update
+    # 
       post 'user/:id', to: 'users#create_or_update' # create_or_update はカスタムアクション名
       get 'user/:id', to: 'users#show' # GET /api/user/:id の show
-    #
+    #スコア送信関係
+      post 'scores', to: 'scores#create' # スコア送信
+      get 'scores/:id', to: 'scores#show' # スコア取得
     end
 end
