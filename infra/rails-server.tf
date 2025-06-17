@@ -1,3 +1,10 @@
+resource "google_artifact_registry_repository" "rails_repo" {
+  location      = var.region
+  repository_id = "rails-server"
+  format        = "DOCKER"
+  description   = "Rails server container images"
+}
+
 resource "google_cloud_run_service" "rails_server" {
     name     = "rails-server"
     location = var.region
