@@ -71,8 +71,6 @@ func handleMessage(conn *websocket.Conn, msg *Message) {
 	switch msg.Type {
 	case "join":
 		handleJoin(conn, msg)
-	case "cancel":
-		handleCancel(conn, msg)
 	case "score_update":
 		handleScoreUpdate(conn, msg)
 	case "game_end":
@@ -116,32 +114,6 @@ func handleJoin(conn *websocket.Conn, msg *Message) {
 	if len(room.Players) == 2 && !room.GameStarted {
 		room.GameStarted = true
 		startGame(room)
-	}
-}
-
-func handleCancel(conn *websocket.Conn, msg *Message) {
-	roomsMutex.Lock()
-	defer roomsMutex.Unlock()
-
-	room, exists := rooms[msg.RoomId]
-	if !exists {
-		return
-	}
-
-	room.mu.Lock()
-	defer room.mu.Unlock()
-
-	if _, ok := room.Players[msg.PlayerId]; ok {
-		delete(room.Players, msg.PlayerId)
-		log.Printf("Player %s canceled from room %s", msg.PlayerId, msg.RoomId)
-
-		// ルームが空になったら削除
-		if len(room.Players) == 0 {
-			delete(rooms, msg.RoomId)
-			log.Printf("Room %s deleted (empty)", msg.RoomId)
-		} else {
-			broadcastRoomStatus(room)
-		}
 	}
 }
 
