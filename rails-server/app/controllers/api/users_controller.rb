@@ -2,6 +2,7 @@ class Api::UsersController < ActionController::API
   # ユーザーの新規作成またはログイン
   def create
     firebase_uid = params[:uid]
+    user_name = params[:user_name]
 
     if firebase_uid.blank?
       render json: { error: "UIDが送信されていません" }, status: :bad_request
@@ -14,7 +15,7 @@ class Api::UsersController < ActionController::API
       if user
         render json:{ message: "ログイン完了！"}
       else
-        user = User.create(user_id: firebase_uid)
+        user = User.create(user_id: firebase_uid, user_name: user_name)
         render json:{ message: "新規作成完了！"}
       end
   end
