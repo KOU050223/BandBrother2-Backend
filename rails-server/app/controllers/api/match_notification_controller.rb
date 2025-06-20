@@ -23,5 +23,28 @@ module Api
       
       render json: status
     end
+
+    def cancel_match
+      # プレイヤーIDを取得
+      player_id = params[:player_id]
+      
+      if player_id.blank?
+        render json: { 
+          success: false,
+          error: "プレイヤーIDが必要です" 
+        }, status: :bad_request
+        return
+      end
+      
+      # マッチングキューからプレイヤーを削除
+      MatchmakingService.leave_queue(player_id)
+      
+      Rails.logger.info "Player #{player_id} cancelled matchmaking"
+      
+      render json: { 
+        success: true,
+        message: "マッチングをキャンセルしました" 
+      }
+    end
   end
 end
