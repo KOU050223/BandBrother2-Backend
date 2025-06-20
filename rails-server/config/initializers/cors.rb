@@ -14,4 +14,14 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
       credentials: true
   end
+
+  # Docker環境内でのコンテナ間通信を許可
+  allow do
+    origins '*'  # 内部ネットワークからのアクセスを許可
+    
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: false  # 内部通信ではcredentialsは不要
+  end
 end

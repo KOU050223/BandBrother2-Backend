@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -34,15 +38,33 @@ type Player struct {
 
 // ルーム情報
 type Room struct {
-	RoomId      string
-	Players     map[string]*Player
-	GameStarted bool
-	mu          sync.RWMutex
+	RoomId         string
+	Players        map[string]*Player
+	GameStarted    bool
+	GameEnded      bool
+	EndedPlayers   map[string]bool
+	mu             sync.RWMutex
 }
 
 // グローバルなルーム管理
 var rooms = make(map[string]*Room)
 var roomsMutex sync.RWMutex
+
+// Rails APIのベースURL
+var railsAPIURL = func() string {
+	if url := os.Getenv("RAILS_API_URL"); url != "" {
+		return url + "/api"
+	}
+	return "http://web:3000/api"
+}()
+
+// 対戦結果をRails APIに送信するための構造体
+type BattleResultRequest struct {
+	Uid    string `json:"uid"`
+	RoomId int    `json:"room_id"`
+	Score  int    `json:"score"`
+	IsWin  bool   `json:"is_win"`
+}
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -87,8 +109,9 @@ func handleJoin(conn *websocket.Conn, msg *Message) {
 	room, exists := rooms[msg.RoomId]
 	if !exists {
 		room = &Room{
-			RoomId:  msg.RoomId,
-			Players: make(map[string]*Player),
+			RoomId:       msg.RoomId,
+			Players:      make(map[string]*Player),
+			EndedPlayers: make(map[string]bool),
 		}
 		rooms[msg.RoomId] = room
 	}
@@ -147,12 +170,19 @@ func handleGameEnd(conn *websocket.Conn, msg *Message) {
 	room.mu.Lock()
 	defer room.mu.Unlock()
 
-	if player, ok := room.Players[msg.PlayerId]; ok {
-		player.Score = msg.FinalScore
+	// ゲームが既に終了している場合は処理しない
+	if room.GameEnded {
+		return
 	}
 
-	// 全プレイヤーが終了したら結果を送信
-	if len(room.Players) == 2 {
+	if player, ok := room.Players[msg.PlayerId]; ok {
+		player.Score = msg.FinalScore
+		room.EndedPlayers[msg.PlayerId] = true
+	}
+
+	// 全プレイヤーが終了したら結果を送信（1回だけ）
+	if len(room.EndedPlayers) == len(room.Players) && len(room.Players) == 2 {
+		room.GameEnded = true
 		broadcastGameResult(room)
 		// ルームを削除
 		roomsMutex.Lock()
@@ -236,6 +266,61 @@ func broadcastGameResult(room *Room) {
 		player.Conn.WriteJSON(resultMsg)
 	}
 	log.Printf("Game result sent for room %s. Winner: %s, Tie: %v", room.RoomId, winner, tie)
+
+	// 対戦結果をRails APIに保存
+	go saveBattleResults(room, winner, tie)
+}
+
+// 対戦結果をRails APIに保存
+func saveBattleResults(room *Room, winner string, tie bool) {
+	// room.RoomIdを文字列から整数に変換
+	roomIdInt, err := strconv.Atoi(room.RoomId)
+	if err != nil {
+		log.Printf("Error converting room ID to integer: %v", err)
+		return
+	}
+
+	for playerId, player := range room.Players {
+		isWin := false
+		if !tie && playerId == winner {
+			isWin = true
+		}
+
+		// スコアが負の場合は0にする
+		score := player.Score
+		if score < 0 {
+			score = 0
+		}
+
+		result := BattleResultRequest{
+			Uid:    playerId,
+			RoomId: roomIdInt,
+			Score:  score,
+			IsWin:  isWin,
+		}
+
+		jsonData, err := json.Marshal(result)
+		if err != nil {
+			log.Printf("Error marshaling battle result for player %s: %v", playerId, err)
+			continue
+		}
+
+		resp, err := http.Post(railsAPIURL+"/scores", "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			log.Printf("Error sending battle result to Rails API for player %s: %v", playerId, err)
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			log.Printf("Battle result saved successfully for player %s (score: %d, win: %v)", playerId, player.Score, isWin)
+		} else {
+			// レスポンス内容を読み取ってログに出力
+			body, _ := io.ReadAll(resp.Body)
+			log.Printf("Failed to save battle result for player %s, status: %d, response: %s", playerId, resp.StatusCode, string(body))
+			log.Printf("Request data: %s", string(jsonData))
+		}
+	}
 }
 
 // コネクション切断時のクリーンアップ
