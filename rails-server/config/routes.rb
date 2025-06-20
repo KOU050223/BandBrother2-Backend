@@ -28,6 +28,7 @@ Rails.application.routes.draw do
     #マッチ成立後の処理
       post 'notify_match', to: 'match_notification#notify_match'
       get 'notify_match', to: 'match_notification#notify_match'
+      delete 'cancel_match', to: 'match_notification#cancel_match'
     #ユーザー登録関係
       post 'users', to: 'users#create' # create_or_update はカスタムアクション名
       get 'users', to: 'users#update' # GET /api/user/:id の show
