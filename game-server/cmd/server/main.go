@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,6 +45,22 @@ type Room struct {
 // グローバルなルーム管理
 var rooms = make(map[string]*Room)
 var roomsMutex sync.RWMutex
+
+// Rails APIのベースURL
+var railsAPIURL = func() string {
+	if url := os.Getenv("RAILS_API_URL"); url != "" {
+		return url + "/api"
+	}
+	return "http://web:3000/api"
+}()
+
+// 対戦結果をRails APIに送信するための構造体
+type BattleResultRequest struct {
+	Uid    string `json:"uid"`
+	RoomId string `json:"room_id"`
+	Score  int    `json:"score"`
+	IsWin  bool   `json:"is_win"`
+}
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -236,6 +254,45 @@ func broadcastGameResult(room *Room) {
 		player.Conn.WriteJSON(resultMsg)
 	}
 	log.Printf("Game result sent for room %s. Winner: %s, Tie: %v", room.RoomId, winner, tie)
+
+	// 対戦結果をRails APIに保存
+	go saveBattleResults(room, winner, tie)
+}
+
+// 対戦結果をRails APIに保存
+func saveBattleResults(room *Room, winner string, tie bool) {
+	for playerId, player := range room.Players {
+		isWin := false
+		if !tie && playerId == winner {
+			isWin = true
+		}
+
+		result := BattleResultRequest{
+			Uid:    playerId,
+			RoomId: room.RoomId,
+			Score:  player.Score,
+			IsWin:  isWin,
+		}
+
+		jsonData, err := json.Marshal(result)
+		if err != nil {
+			log.Printf("Error marshaling battle result for player %s: %v", playerId, err)
+			continue
+		}
+
+		resp, err := http.Post(railsAPIURL+"/scores", "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			log.Printf("Error sending battle result to Rails API for player %s: %v", playerId, err)
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			log.Printf("Battle result saved successfully for player %s (score: %d, win: %v)", playerId, player.Score, isWin)
+		} else {
+			log.Printf("Failed to save battle result for player %s, status: %d", playerId, resp.StatusCode)
+		}
+	}
 }
 
 // コネクション切断時のクリーンアップ

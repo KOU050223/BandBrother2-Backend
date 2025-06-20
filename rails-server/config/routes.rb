@@ -18,8 +18,6 @@ Rails.application.routes.draw do
 
     # 楽曲データ取得
       resources :music, only: [:index, :show]
-    #スコアデータ送信
-      post ':game_id/score', to: 'scores#create'
     #roomマッチング
       post 'matchmaking', to: 'matchmaking#join'
       post 'matchmaking/join', to: 'matchmaking#join'
@@ -36,8 +34,7 @@ Rails.application.routes.draw do
     # 
       post 'user/:id', to: 'users#create_or_update' # create_or_update はカスタムアクション名
       get 'user/:id', to: 'users#show' # GET /api/user/:id の show
-    #スコア送信関係
-      post 'scores', to: 'scores#create' # スコア送信
-      get 'scores/:id', to: 'scores#show' # スコア取得
+    #ハイスコア更新処理
+      post 'scores', to: 'scores#update' # ハイスコア送信
     end
 end
