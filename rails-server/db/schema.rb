@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_14_190732) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_21_131352) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,6 +22,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_14_190732) do
     t.datetime "joined_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["room_id", "player_id"], name: "index_battle_details_on_room_id_and_player_id", unique: true
   end
 
   create_table "matching_ques", force: :cascade do |t|
