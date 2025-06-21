@@ -14,12 +14,35 @@ variable "region" {
 variable "db_instance_name" { default = "rails-db" }
 variable "db_version" { default = "POSTGRES_15" }
 variable "db_tier" { default = "db-f1-micro" }
-variable "database_name" {}
-variable "database_user" {}
-variable "database_password" {}
+variable "database_name" {
+  description = "PostgreSQL database name"
+  type        = string
+}
+variable "database_username" {
+  description = "PostgreSQL database username"
+  type        = string
+}
+variable "database_password" {
+  description = "PostgreSQL database password"
+  type        = string
+  sensitive   = true
+}
+variable "database_host" {
+  description = "PostgreSQL database host"
+  type        = string
+}
 
-variable "rails_server_image" {}
-variable "rails_master_key" {}
+# Redis接続URLは redis.tf で動的に生成されます
+
+variable "rails_server_image" {
+  description = "Rails server Docker image"
+  type        = string
+}
+variable "rails_master_key" {
+  description = "Rails master key for credentials"
+  type        = string
+  sensitive   = true
+}
 
 variable "service_account_email" {
   description = "Cloud Run実行用サービスアカウントのメールアドレス"
@@ -47,4 +70,9 @@ variable "cloud_run_cpu" {
   description = "Cloud RunのCPU"
   type        = string
   default     = "1"
+}
+
+variable "game_server_image" {
+  description = "Go WebSocket server Docker image"
+  type        = string
 }
