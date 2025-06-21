@@ -46,10 +46,10 @@ resource "google_cloud_run_service" "rails_server" {
                 }
 # PORT環境変数はCloud Runで自動設定されるため削除
                 
-                # データベース設定
+                # データベース設定（Cloud SQL Unix Socket接続）
                 env {
                     name  = "DATABASE_HOST"
-                    value = var.database_host
+                    value = "/cloudsql/${google_sql_database_instance.main.connection_name}"
                 }
                 env {
                     name  = "DATABASE_NAME"
@@ -67,7 +67,13 @@ resource "google_cloud_run_service" "rails_server" {
                 # Redis設定
                 env {
                     name  = "REDIS_URL"
-                    value = "redis://${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
+                    value = "redis://:${google_redis_instance.redis.auth_string}@${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
+                }
+
+                # Sidekiq 等が REDIS_PASSWORD を見る場合に備えて明示
+                env {
+                    name  = "REDIS_PASSWORD"
+                    value = google_redis_instance.redis.auth_string
                 }
                 
                 # ジョブ処理設定
@@ -85,10 +91,10 @@ resource "google_cloud_run_service" "rails_server" {
             annotations = {
                 "autoscaling.knative.dev/maxScale" = var.cloud_run_max_instances
                 "autoscaling.knative.dev/minScale" = "0"
-                "run.googleapis.com/cloudsql-instances" = var.database_host
+                "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.main.connection_name
                 "run.googleapis.com/execution-environment" = "gen2"
-                # VPC Connectorは一旦コメントアウト（Redisへの接続は後で設定）
-                # "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
+                # VPC Connector for Redis access
+                "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
             }
         }
     }

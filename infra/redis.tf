@@ -5,8 +5,8 @@ resource "google_redis_instance" "redis" {
   memory_size_gb = 1
   region         = var.region
   
-  # ネットワーク設定（一旦デフォルトネットワーク使用）
-  # authorized_network = google_compute_network.vpc.id
+  # ネットワーク設定
+  authorized_network = google_compute_network.vpc.id
   
   # Redis設定
   redis_version = "REDIS_6_X"
@@ -39,19 +39,19 @@ resource "google_compute_subnetwork" "subnet" {
   network       = google_compute_network.vpc.id
 }
 
-# VPC Connector は一旦コメントアウト（ネットワーク設定を簡単にするため）
-# resource "google_vpc_access_connector" "connector" {
-#   name          = "bandbrother2-connector"
-#   ip_cidr_range = "10.1.0.0/28"
-#   network       = google_compute_network.vpc.name
-#   region        = var.region
-#   
-#   # インスタンス数を指定（小規模なアプリケーション用）
-#   min_instances = 2
-#   max_instances = 3
-#   
-#   depends_on = [google_project_service.vpcaccess]
-# }
+# VPC Connector for Cloud Run to access Redis
+resource "google_vpc_access_connector" "connector" {
+  name          = "bandbrother2-connector"
+  ip_cidr_range = "10.1.0.0/28"
+  network       = google_compute_network.vpc.name
+  region        = var.region
+  
+  # インスタンス数を指定（小規模なアプリケーション用）
+  min_instances = 2
+  max_instances = 3
+  
+  depends_on = [google_project_service.vpcaccess]
+}
 
 # Redis接続情報を出力
 output "redis_host" {
@@ -64,4 +64,10 @@ output "redis_port" {
 
 output "redis_url" {
   value = "redis://${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
+}
+
+# Redis パスワードを出力（デフォルトで sensitive 扱い）
+output "redis_password" {
+  value       = google_redis_instance.redis.auth_string
+  sensitive   = true
 }

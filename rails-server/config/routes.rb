@@ -23,6 +23,7 @@ Rails.application.routes.draw do
       post 'matchmaking/join', to: 'matchmaking#join'
       delete 'matchmaking', to: 'matchmaking#destroy'
       get 'matchmaking/status/:room_id', to: 'matchmaking#status'
+      get 'matchmaking/debug_redis', to: 'matchmaking#debug_redis'
     #マッチ成立後の処理
       post 'notify_match', to: 'match_notification#notify_match'
       get 'notify_match', to: 'match_notification#notify_match'

@@ -46,5 +46,33 @@ module Api
         render json: { error: "ルームが見つかりません" }, status: :not_found
       end
     end
+
+    def debug_redis
+      # Redis接続確認とキー一覧
+      begin
+        redis = Redis.new
+        keys = redis.keys("*")
+        info = {
+          redis_connected: true,
+          total_keys: keys.length,
+          keys: keys.first(20), # 最初の20キーのみ表示
+          queue_keys: keys.select { |k| k.include?("queue") || k.include?("match") }
+        }
+        
+        # キューの内容確認
+        if redis.exists?("matchmaking_queue")
+          info[:queue_length] = redis.llen("matchmaking_queue")
+          info[:queue_contents] = redis.lrange("matchmaking_queue", 0, -1)
+        end
+        
+        render json: info
+      rescue => e
+        render json: { 
+          redis_connected: false, 
+          error: e.message,
+          redis_url: ENV['REDIS_URL']
+        }
+      end
+    end
   end
 end

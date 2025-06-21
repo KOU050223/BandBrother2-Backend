@@ -65,3 +65,11 @@ docker-compose logs web
 ```bash
 docker ps
 ```
+
+## 反映方法
+```
+DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 -t
+      asia-northeast1-docker.pkg.dev/bandbrother2/rails-server/rails-server:latest --push .
+
+
+```
