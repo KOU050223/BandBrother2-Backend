@@ -36,5 +36,11 @@ Rails.application.routes.draw do
       get 'user/:id', to: 'users#show' # GET /api/user/:id の show
     #ハイスコア更新処理
       post 'scores', to: 'scores#update' # ハイスコア送信
+    #デバッグ用
+      get 'debug/queue', to: 'debug#queue_status' # キュー状態確認
+      delete 'debug/queue', to: 'debug#clear_queue' # キュークリア
+      post 'debug/process_queue', to: 'debug#process_queue' # 手動マッチング実行
+      post 'debug/sync_queue', to: 'debug#sync_queue' # キューとステータス同期
+      post 'debug/sync_rooms', to: 'debug#sync_rooms' # ルームとRedisの同期
     end
 end

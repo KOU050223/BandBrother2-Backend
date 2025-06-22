@@ -6,6 +6,11 @@ class MatchmakingService
   PLAYER_STATUS_KEY = 'matchmaking:player_status'
 
   def self.join_queue(player_id)
+    # 既にキューに存在するかチェック
+    if $redis.lrem(QUEUE_KEY, 0, player_id) > 0
+      Rails.logger.info "Player #{player_id} was already in queue, re-adding"
+    end
+    
     # プレイヤーをキューに追加
     $redis.multi do |redis|
       redis.lpush(QUEUE_KEY, player_id)

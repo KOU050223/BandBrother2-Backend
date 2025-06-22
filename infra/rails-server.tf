@@ -67,13 +67,17 @@ resource "google_cloud_run_service" "rails_server" {
                 # Redis設定
                 env {
                     name  = "REDIS_URL"
-                    value = "redis://${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
+                    value = "redis://:${google_redis_instance.redis.auth_string}@${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
                 }
                 
                 # ジョブ処理設定
                 env {
                     name  = "JOB_CONCURRENCY"
                     value = "1"
+                }
+                env {
+                    name  = "DEPLOY_TIMESTAMP"
+                    value = "2025-01-22-04"
                 }
             }
             
@@ -87,8 +91,8 @@ resource "google_cloud_run_service" "rails_server" {
                 "autoscaling.knative.dev/minScale" = "0"
                 "run.googleapis.com/cloudsql-instances" = var.database_host
                 "run.googleapis.com/execution-environment" = "gen2"
-                # VPC Connectorは一旦コメントアウト（Redisへの接続は後で設定）
-                # "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
+                # VPC Connector（Redisへの接続に必要）
+                "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
             }
         }
     }
