@@ -67,11 +67,16 @@ type BattleResultRequest struct {
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("WebSocket connection attempt from %s", r.RemoteAddr)
+	log.Printf("Request headers: %v", r.Header)
+	
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Upgrade error:", err)
+		log.Printf("Upgrade error from %s: %v", r.RemoteAddr, err)
 		return
 	}
+	
+	log.Printf("WebSocket connection established with %s", r.RemoteAddr)
 	defer func() {
 		cleanupConnection(conn)
 		conn.Close()
