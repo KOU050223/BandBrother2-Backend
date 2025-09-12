@@ -21,13 +21,14 @@ ENV BUNDLE_DEPLOYMENT="1"
 # ───── Build stage ─────
 FROM base AS build
 
-# Install build dependencies
+# Install build dependencies (removed libpq-dev since we're using Firestore)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config libpq-dev && \
+    apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install gems
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile ./
+COPY Gemfile.lock* ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
@@ -43,16 +44,18 @@ RUN chmod +x bin/* && \
     sed -i "s/\r$//g" bin/* && \
     sed -i 's/ruby\.exe$/ruby/' bin/*
 
-# Precompile assets (use dummy secret key)
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Skip asset precompilation for API-only server
+# RUN SECRET_KEY_BASE_DUMMY=1 \
+#     GOOGLE_CLOUD_PROJECT_ID=bandbrother2-dev \
+#     RAILS_ENV=production \
+#     DATABASE_URL=nulldb://user:pass@localhost/db \
+#     ./bin/rails assets:precompile
 
 # ───── Final runtime stage ─────
 FROM base
 
-# PostgreSQLクライアントライブラリをインストール
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y libpq-dev && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+# Firestore用の依存関係は既にGemでインストール済み
+# PostgreSQL依存を削除
 
 # Copy built artifacts: gems, application
 COPY --from=build /usr/local/bundle /usr/local/bundle

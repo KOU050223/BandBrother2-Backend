@@ -18,14 +18,18 @@ services:
       BUNDLE_PATH: vendor/bundle
       BUNDLE_DEPLOYMENT: "0"
       RAILS_ENV: development
-      GOOGLE_CLOUD_PROJECT: bandbrother2-dev
+      # Firestore configuration
+      GOOGLE_CLOUD_PROJECT_ID: bandbrother2-dev
+      GOOGLE_APPLICATION_CREDENTIALS: /rails/config/service-account-key.json
+      # Pub/Sub configuration
       PUBSUB_EMULATOR_HOST: ""  # Mock mode
       MATCHING_QUEUE_TOPIC: bandbrother2-matching-queue
       MATCH_RESULTS_TOPIC: bandbrother2-match-results
       ROOM_EVENTS_TOPIC: bandbrother2-room-events
       # 開発環境フラグ
       USE_PUBSUB_MOCK: "true"
-      DISABLE_EXTERNAL_SERVICES: "true"
+      USE_FIRESTORE_EMULATOR: "false"
+      DISABLE_EXTERNAL_SERVICES: "false"
     restart: unless-stopped
 
   game-server:
@@ -38,13 +42,17 @@ services:
     environment:
       WS_PORT: "8080"
       RAILS_API_URL: http://web:3000
-      GOOGLE_CLOUD_PROJECT: bandbrother2-dev
+      # Firestore configuration
+      GOOGLE_CLOUD_PROJECT_ID: bandbrother2-dev
+      GOOGLE_APPLICATION_CREDENTIALS: /app/config/service-account-key.json
+      # Pub/Sub configuration
       PUBSUB_EMULATOR_HOST: ""  # Mock mode
       MATCH_RESULTS_SUBSCRIPTION: match-results-subscription
       ROOM_EVENTS_TOPIC: bandbrother2-room-events
       # 開発環境フラグ
       USE_PUBSUB_MOCK: "true"
-      DISABLE_EXTERNAL_SERVICES: "true"
+      USE_FIRESTORE_EMULATOR: "false"
+      DISABLE_EXTERNAL_SERVICES: "false"
     depends_on:
       web:
         condition: service_started
