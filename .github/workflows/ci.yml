@@ -61,4 +61,9 @@ jobs:
 
     - name: Test binary execution
       run: |
-        ./game-server --help || echo "バイナリが正常にビルドされました"
+        if [ -f "./game-server" ]; then
+          echo "✅ バイナリが正常にビルドされました"
+        else
+          echo "❌ バイナリのビルドに失敗しました"
+          exit 1
+        fi
