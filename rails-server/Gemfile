@@ -14,7 +14,11 @@ gem "turbo-rails"
 gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
-gem "pg"
+# gem "pg"
+
+# Use Google Cloud Firestore for NoSQL database
+gem "google-cloud-firestore"
+gem "activerecord-nulldb-adapter"
 
 # Use rack-cors for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 gem "rack-cors"
@@ -28,10 +32,10 @@ gem "redis"
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
-# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
-gem "solid_cache"
-gem "solid_queue"
-gem "solid_cable"
+# Use Redis for cache, queue, and cable (removed database-backed adapters)
+# gem "solid_cache"
+# gem "solid_queue" 
+# gem "solid_cable"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
