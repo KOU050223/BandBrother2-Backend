@@ -46,28 +46,22 @@ resource "google_cloud_run_service" "rails_server" {
                 }
 # PORT環境変数はCloud Runで自動設定されるため削除
                 
-                # データベース設定
+                # Pub/Sub設定
                 env {
-                    name  = "DATABASE_HOST"
-                    value = var.database_host
+                    name  = "GOOGLE_CLOUD_PROJECT"
+                    value = var.project_id
                 }
                 env {
-                    name  = "DATABASE_NAME"
-                    value = var.database_name
+                    name  = "MATCHING_QUEUE_TOPIC"
+                    value = google_pubsub_topic.matching_queue.name
                 }
                 env {
-                    name  = "DATABASE_USERNAME"
-                    value = var.database_username
+                    name  = "MATCH_RESULTS_TOPIC"
+                    value = google_pubsub_topic.match_results.name
                 }
                 env {
-                    name  = "DATABASE_PASSWORD"
-                    value = var.database_password
-                }
-                
-                # Redis設定
-                env {
-                    name  = "REDIS_URL"
-                    value = "redis://${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
+                    name  = "ROOM_EVENTS_TOPIC"
+                    value = google_pubsub_topic.room_events.name
                 }
                 
                 # ジョブ処理設定
@@ -77,18 +71,17 @@ resource "google_cloud_run_service" "rails_server" {
                 }
             }
             
-            container_concurrency = 80
-            timeout_seconds      = 300
+            container_concurrency = var.container_concurrency
+            timeout_seconds      = var.cloud_run_timeout
         }
         
         metadata {
             annotations = {
                 "autoscaling.knative.dev/maxScale" = var.cloud_run_max_instances
-                "autoscaling.knative.dev/minScale" = "0"
-                "run.googleapis.com/cloudsql-instances" = var.database_host
+                "autoscaling.knative.dev/minScale" = tostring(var.cloud_run_min_instances)
+                # Cloud SQL設定は削除
                 "run.googleapis.com/execution-environment" = "gen2"
-                # VPC Connectorは一旦コメントアウト（Redisへの接続は後で設定）
-                # "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
+                # VPC Connectorは使用しない（簡略化）
             }
         }
     }

@@ -13,26 +13,20 @@ resource "google_project_service" "servicenetworking" {
   disable_dependent_services = true
 }
 
-resource "google_project_service" "redis" {
+resource "google_project_service" "pubsub" {
   project = var.project_id
-  service = "redis.googleapis.com"
+  service = "pubsub.googleapis.com"
   
   disable_dependent_services = true
 }
 
-resource "google_project_service" "sqladmin" {
-  project = var.project_id
-  service = "sqladmin.googleapis.com"
-  
-  disable_dependent_services = true
-}
-
-resource "google_project_service" "vpcaccess" {
-  project = var.project_id
-  service = "vpcaccess.googleapis.com"
-  
-  disable_dependent_services = true
-}
+# VPC Accessは簡略化のためコメントアウト
+# resource "google_project_service" "vpcaccess" {
+#   project = var.project_id
+#   service = "vpcaccess.googleapis.com"
+#   
+#   disable_dependent_services = true
+# }
 
 resource "google_project_service" "cloudrun" {
   project = var.project_id

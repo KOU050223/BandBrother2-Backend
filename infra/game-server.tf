@@ -8,7 +8,7 @@ resource "google_artifact_registry_repository" "go_websocket_repo" {
 }
 
 resource "google_cloud_run_service" "game_server" {
-    name     = "game-server"
+    name     = var.game_server_service_name
     location = var.region
     
     depends_on = [google_project_service.cloudrun]
@@ -34,28 +34,29 @@ resource "google_cloud_run_service" "game_server" {
                     value = google_cloud_run_service.rails_server.status[0].url
                 }
                 env {
-                    name  = "REDIS_HOST"
-                    value = google_redis_instance.redis.host
+                    name  = "GOOGLE_CLOUD_PROJECT"
+                    value = var.project_id
                 }
                 env {
-                    name  = "REDIS_PORT"
-                    value = tostring(google_redis_instance.redis.port)
+                    name  = "MATCH_RESULTS_SUBSCRIPTION"
+                    value = google_pubsub_subscription.match_results_subscription.name
                 }
                 env {
-                    name  = "REDIS_URL"
-                    value = "redis://${google_redis_instance.redis.host}:${google_redis_instance.redis.port}/0"
+                    name  = "ROOM_EVENTS_TOPIC"
+                    value = google_pubsub_topic.room_events.name
                 }
             }
             
-            container_concurrency = 80
-            timeout_seconds      = 300
+            container_concurrency = var.container_concurrency
+            timeout_seconds      = var.cloud_run_timeout
         }
         
         metadata {
             annotations = {
                 "autoscaling.knative.dev/maxScale" = var.cloud_run_max_instances
-                "autoscaling.knative.dev/minScale" = "0"
+                "autoscaling.knative.dev/minScale" = tostring(var.cloud_run_min_instances)
                 "run.googleapis.com/execution-environment" = "gen2"
+                # VPC Connectorは使用しない（簡略化）
             }
         }
     }

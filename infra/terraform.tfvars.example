@@ -2,3 +2,9 @@
 
 project_id = "project_id"
 region     = "asia-northeast1"
+
+# アプリケーション設定
+rails_server_image = ""
+game_server_image = ""
+rails_master_key = ""
+service_account_email = ""
