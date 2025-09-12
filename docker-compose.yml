@@ -1,31 +1,5 @@
 services:
-  db:
-    image: postgres:15
-    container_name: myapp-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: myapp_development
-    ports:
-      - "5432:5432"
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  redis:
-    image: redis:7
-    container_name: myapp-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # 開発環境のみで利用（本番はCloud Pub/Sub）
 
   web:
     build:
@@ -44,16 +18,14 @@ services:
       BUNDLE_PATH: vendor/bundle
       BUNDLE_DEPLOYMENT: "0"
       RAILS_ENV: development
-      DATABASE_HOST: db
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: password
-      DATABASE_NAME: myapp_development
-      REDIS_URL: redis://redis:6379/0
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      GOOGLE_CLOUD_PROJECT: bandbrother2-dev
+      PUBSUB_EMULATOR_HOST: ""  # Mock mode
+      MATCHING_QUEUE_TOPIC: bandbrother2-matching-queue
+      MATCH_RESULTS_TOPIC: bandbrother2-match-results
+      ROOM_EVENTS_TOPIC: bandbrother2-room-events
+      # 開発環境フラグ
+      USE_PUBSUB_MOCK: "true"
+      DISABLE_EXTERNAL_SERVICES: "true"
     restart: unless-stopped
 
   game-server:
@@ -65,17 +37,17 @@ services:
       - "8080:8080"
     environment:
       WS_PORT: "8080"
-      DATABASE_HOST: db
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: password
-      DATABASE_NAME: myapp_development
-      REDIS_URL: redis://redis:6379/1
+      RAILS_API_URL: http://web:3000
+      GOOGLE_CLOUD_PROJECT: bandbrother2-dev
+      PUBSUB_EMULATOR_HOST: ""  # Mock mode
+      MATCH_RESULTS_SUBSCRIPTION: match-results-subscription
+      ROOM_EVENTS_TOPIC: bandbrother2-room-events
+      # 開発環境フラグ
+      USE_PUBSUB_MOCK: "true"
+      DISABLE_EXTERNAL_SERVICES: "true"
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      web:
+        condition: service_started
     restart: unless-stopped
 volumes:
-  db-data:
   bundle_data:

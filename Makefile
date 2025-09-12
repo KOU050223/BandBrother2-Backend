@@ -14,13 +14,23 @@ help: ## ヘルプを表示
 	@echo ""
 
 # Docker Compose Services Management
-up: ## 全サービスを起動（Docker Compose + Go WebSocket）
+up: ## 全サービスを起動（開発環境）
 	@echo "🚀 BandBrother2 Backend を起動中..."
-	@./run.sh
+	@docker-compose up -d
+	@echo "⏳ サービスの起動を待機中..."
+	@sleep 5
+	@echo "🎉 BandBrother2 Backend の起動が完了しました！"
+	@echo "📍 アクセス情報:"
+	@echo "   🚂 Rails API: http://localhost:3000"
+	@echo "   🔌 WebSocket: ws://localhost:8080"
+	@echo "   📝 Pub/Sub: Mock Mode (外部依存なし)"
+
+dev: up ## 開発環境を起動（upのエイリアス）
 
 down: ## 全サービスを停止
 	@echo "🛑 BandBrother2 Backend を停止中..."
-	@./stop.sh
+	@docker-compose down
+	@echo "✅ BandBrother2 Backend の停止が完了しました！"
 
 restart: ## 全サービスを再起動
 	@echo "🔄 BandBrother2 Backend を再起動中..."
@@ -29,8 +39,11 @@ restart: ## 全サービスを再起動
 	@make up
 
 status: ## サービス状況を確認
-	@echo "📊 BandBrother2 Backend 状況確認..."
-	@./status.sh
+	@echo "🔍 BandBrother2 Backend 状況確認..."
+	@echo "======================================"
+	@echo "📦 Docker サービス状況:"
+	@docker-compose ps 2>/dev/null || echo "   ❌ Docker サービスが起動していません"
+	@$(MAKE) health
 
 # Docker Compose Shortcuts
 build: ## Dockerイメージをビルド
@@ -54,30 +67,17 @@ logs-go: ## Go WebSocketサーバーのログを表示
 	@echo "🔌 Go WebSocketサーバーログを表示中..."
 	@docker logs -f myapp-game-server
 
-logs-db: ## PostgreSQLのログを表示
-	@echo "🗄️  PostgreSQLログを表示中..."
-	@docker-compose logs -f db
+# Pub/Subは開発環境でMockを使用
 
-logs-redis: ## Redisのログを表示
-	@echo "📦 Redisログを表示中..."
-	@docker-compose logs -f redis
+# Pub/Sub Management
+# 開発環境ではPub/Sub Mockを使用するため、追加設定不要
 
-# Database Management
-db-migrate: ## データベースマイグレーション実行
-	@echo "📊 データベースマイグレーション実行中..."
-	@docker-compose exec web bundle exec rails db:migrate
-
-db-seed: ## データベースシードデータ投入
-	@echo "🌱 シードデータ投入中..."
-	@docker-compose exec web bundle exec rails db:seed
-
-db-reset: ## データベースリセット（危険！）
-	@echo "⚠️  データベースをリセットします..."
-	@docker-compose exec web bundle exec rails db:drop db:create db:migrate db:seed
-
-db-console: ## PostgreSQLコンソールに接続
-	@echo "🗄️  PostgreSQLコンソールに接続中..."
-	@docker-compose exec db psql -U postgres -d myapp_development
+test-matching: ## マッチング機能のテスト
+	@echo "🎮 マッチング機能をテスト中..."
+	@echo "開発環境ではMockを使用してマッチング処理をテストします"
+	@curl -X POST http://localhost:3000/api/matchmaking \
+		-H "Content-Type: application/json" \
+		-d '{"userId":"test123","difficulty":"easy"}' || echo "Rails APIが起動していません"
 
 # Rails Management
 rails-console: ## Railsコンソールを起動
@@ -109,10 +109,7 @@ health: ## 全サービスのヘルスチェック
 	@curl -s -o /dev/null -w "  Status: %{http_code}\n" http://localhost:3000 || echo "  ❌ 接続失敗"
 	@echo "🔌 Go WebSocket (http://localhost:8080):"
 	@curl -s -o /dev/null -w "  Status: %{http_code}\n" http://localhost:8080 || echo "  ❌ 接続失敗"
-	@echo "🗄️  PostgreSQL:"
-	@docker exec myapp-db pg_isready -U postgres && echo "  ✅ 接続OK" || echo "  ❌ 接続失敗"
-	@echo "📦 Redis:"
-	@docker exec myapp-redis redis-cli ping && echo "  ✅ 接続OK" || echo "  ❌ 接続失敗"
+	@echo "📝 Pub/Sub: Mock Mode (外部依存なし)"
 
 # Clean up
 clean: ## 全コンテナ・ボリューム・ネットワークを削除（危険！）
