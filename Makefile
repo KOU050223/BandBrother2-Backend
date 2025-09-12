@@ -154,7 +154,7 @@ deploy-infra: ## Terraformで本番インフラをデプロイ
 	@echo "🌍 本番インフラをデプロイ中..."
 	@cd infra && terraform apply -auto-approve
 
-deploy-full: ## フルデプロイ（ビルド + インフラ）
+deploy: ## フルデプロイ（ビルド + インフラ）
 	@echo "🚀 フルデプロイを実行中..."
 	@make deploy-build-rails
 	@make deploy-build-go
